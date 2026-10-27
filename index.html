@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Read the room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDEFF5; --surface:#FFFFFF; --ink:#12162B; --muted:#586080; --line:#CDD2E2;
+  --accent:#2B3FD6; --accent-ink:#FFFFFF;
+  --tape:#F2C230; --tape-bg:#FFF4CC;
+  --r0:#9AA2BC; --r1:#2B3FD6; --r2:#7A3FC4;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0C1020; --surface:#161B30; --ink:#EEF0FA; --muted:#A3ABC8; --line:#2A3152;
+    --accent:#8C9CFF; --accent-ink:#0C1020;
+    --tape:#F2C230; --tape-bg:#2C2610;
+    --r0:#5B6488; --r1:#8C9CFF; --r2:#B995F2;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.5;
+  padding:0 0 calc(84px + env(safe-area-inset-bottom));
+}
+main{max-width:560px;margin:0 auto;padding:22px 18px 8px}
+h1,h2,h3{font-stretch:76%;font-weight:800;letter-spacing:.005em;line-height:1.05;margin:0}
+h1{font-size:44px}
+h2{font-size:30px;margin-bottom:6px}
+h3{font-size:21px;margin:26px 0 8px}
+.tapebar{display:block;width:72px;height:8px;background:var(--tape);margin:10px 0 14px;transform:skewX(-24deg)}
+.lede{color:var(--muted);margin:0 0 22px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+.q{margin:0 0 22px;border:0;padding:0}
+.q legend{font-weight:700;margin-bottom:8px;padding:0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{
+  font:inherit;color:var(--ink);background:var(--surface);
+  border:1.5px solid var(--line);border-radius:8px;padding:12px 10px;min-height:52px;
+  text-align:left;cursor:pointer;line-height:1.25;
+}
+.opt[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+
+.btn{
+  font:inherit;font-weight:700;border-radius:10px;padding:14px 18px;min-height:52px;cursor:pointer;
+  border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);width:100%;
+}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn + .btn{margin-top:10px}
+.linkbtn{font:inherit;background:none;border:0;color:var(--accent);padding:8px 0;cursor:pointer;font-weight:600;min-height:44px}
+
+.signals{border-top:1px solid var(--line);margin-top:14px}
+.sig{
+  display:block;width:100%;text-align:left;font:inherit;color:var(--ink);
+  background:none;border:0;border-bottom:1px solid var(--line);padding:14px 2px;cursor:pointer;min-height:64px;
+}
+.sig b{display:block;font-weight:600}
+.sig span{color:var(--muted);font-size:14px}
+.sig:active{background:var(--surface)}
+
+details.probe{background:var(--tape-bg);border-left:6px solid var(--tape);padding:0 14px;margin:0 0 6px}
+details.probe summary{padding:14px 0;font-weight:700;cursor:pointer;min-height:48px}
+details.probe p{font-size:15px}
+
+.note{border-left:6px solid var(--tape);background:var(--tape-bg);padding:10px 14px;margin:0 0 10px;font-size:15px}
+.note b{font-weight:700}
+
+.row{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.row .mins{min-width:58px;font-weight:700;font-stretch:80%}
+.row .txt b{display:block}
+.row .txt span{color:var(--muted);font-size:15px}
+
+details.block{border-top:1px solid var(--line)}
+details.block summary{
+  list-style:none;display:flex;align-items:stretch;gap:12px;cursor:pointer;padding:12px 0;min-height:64px;
+}
+details.block summary::-webkit-details-marker{display:none}
+.bar{width:8px;flex:none;background:var(--r0);transform:skewX(-12deg)}
+.r1 .bar{background:var(--r1)} .r2 .bar{background:var(--r2)}
+.bt{flex:1}
+.bt b{display:block;font-size:19px;font-stretch:82%;font-weight:800;line-height:1.15}
+.bt small{color:var(--muted);font-size:14px}
+.mins{font-weight:700;font-stretch:80%;white-space:nowrap;align-self:center}
+details.block[open] summary{padding-bottom:6px}
+.body{padding:2px 0 16px 20px}
+.body p{font-size:15px}
+.body p strong{font-weight:700}
+.body .rules{border-left:6px solid var(--tape);background:var(--tape-bg);padding:8px 12px}
+
+ul.plain,ol.plain{padding-left:20px;margin:0 0 10px}
+ul.plain li,ol.plain li{margin-bottom:6px}
+
+.lever{padding:12px 0;border-top:1px solid var(--line)}
+.lever b{font-stretch:82%;font-weight:800;font-size:18px}
+.lever p{margin:2px 0 0;font-size:15px}
+
+nav.tabs{
+  position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);z-index:10;
+}
+nav.tabs button{
+  font:inherit;font-weight:600;background:none;border:0;color:var(--muted);min-height:60px;cursor:pointer;
+  border-top:4px solid transparent;
+}
+nav.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--tape)}
+
+.timer{text-align:center;padding:18px 10px 20px;margin:0 0 20px;border:2px solid var(--line);background:var(--surface)}
+.timer.rest{background:var(--tape-bg);border-color:var(--tape)}
+#tdisp{font-size:92px;font-stretch:70%;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+#tstat{color:var(--muted);margin:6px 0 16px}
+.timer .btn{max-width:260px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{
+  font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:999px;
+  padding:8px 16px;min-height:44px;cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+
+#toast{
+  position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;
+  pointer-events:none;transition:opacity .2s;z-index:20;
+}
+#toast.on{opacity:1}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<nav class="tabs" aria-label="Sections">
+  <button data-a="tab" data-v="plan">Plan</button>
+  <button data-a="tab" data-v="toolkit">Toolkit</button>
+  <button data-a="tab" data-v="library">Library</button>
+  <button data-a="tab" data-v="timer">Timer</button>
+</nav>
+
+<script>
+/* ---------- DATA ---------- */
+const RUNG = ["Learn the task","Add opposition","Complicate it"];
+
+const THEMES = [
+{
+ id:"standing", name:"Standing: hand fight to takedown",
+ signal:"Standing looks awkward, or everyone pulls guard straight away",
+ warm:"Light pummeling. Fight for inside position for 30 seconds, no finishing, swap partners each round.",
+ live:"Rounds start standing. Landing on top in control earns a bonus point, then play it out.",
+ games:[
+  {n:"Underhook race",
+   setup:"Face your partner in a loose clinch, hands on shoulders or biceps. Both try to win an underhook and hold it for 3 seconds.",
+   rules:"Score = underhook held for 3 seconds. No takedown finishes yet. Reset after each score.",
+   round:"30 to 45 second rounds, new partner each round.",
+   watch:"Who pulls away and who stays connected? Who keeps their head up and hips back?",
+   ask:"What made the underhook disappear? Where was your partner's weight when you got it?",
+   easier:"Only one person tries to score. Partner gives about 50%.",
+   harder:"After the underhook, you must also step to an angle before it counts."},
+  {n:"Takedown to a 3-second hold",
+   setup:"Start in a clinch. The attacker finishes a takedown and holds top control for 3 seconds. The defender also scores by ending on top.",
+   rules:"No slams, no spiking, no neck cranks. Land with control and keep heads safe. Stay off the mat edges.",
+   round:"45 second rounds, swap who attacks first.",
+   watch:"Do they commit to an attempt or hover? What do they do after a failed attempt?",
+   ask:"What did you feel just before the takedown worked? What were you trying to stop?",
+   easier:"Start with the defender in a wide stance and only defending.",
+   harder:"A score only counts if you land in side control or half guard."},
+  {n:"Two-attempt rule",
+   setup:"Free standing exchanges. You only score if your takedown follows a failed first attempt. A first-try success does not count.",
+   rules:"Same safety rules. The defender scores for stuffing both attempts or reversing to top.",
+   round:"60 second rounds, three rounds per pair, then rotate.",
+   watch:"Do they chain attempts or retreat after the first miss? Are they changing level and angle?",
+   ask:"What did the failed attempt tell you about their reaction?",
+   easier:"Any attempt after the first counts, and give 90 seconds.",
+   harder:"Cap each exchange at 20 seconds, or require two different entries."}
+ ]
+},
+{
+ id:"retention", name:"Guard retention (bottom)",
+ signal:"Bottom players get flattened or passed quickly",
+ warm:"Light shrimping and leg-frame flows while a partner walks around slowly. Keep your feet between you and them.",
+ live:"Rounds start with the passer in range. Bottom scores one point for every 30 seconds without being passed.",
+ games:[
+  {n:"Legs in the way",
+   setup:"Bottom sits or lies back with legs up. Top stands at a distance and tries to walk around to the side or chest.",
+   rules:"Bottom keeps legs or knees between you and them for 45 seconds. Top steps only, no grips at first. Top scores if their chest gets past the knees.",
+   round:"45 second rounds, swap roles each round.",
+   watch:"Are feet and knees active or stuck on the mat? Do they turn their hips to face the passer?",
+   ask:"Where was your partner when you lost the legs? What did you do next?",
+   easier:"Top moves at half speed and only steps. No pressure.",
+   harder:"Top may grab ankles and use hips, at full speed."},
+  {n:"Thirty-second pass",
+   setup:"Top starts at knee level. Top passes and holds a pin for 3 seconds. Bottom scores by surviving 30 seconds or standing up.",
+   rules:"Bottom may use frames, hooks and shrimps. No sweeps required. Reset after each score.",
+   round:"30 second rounds, four rounds then swap.",
+   watch:"What do bottom players do first when the pass begins? Do they leave legs behind?",
+   ask:"What was your first move, and did it change when they got closer?",
+   easier:"Top gets 45 seconds but starts with hands off.",
+   harder:"Top starts with one knee already past the bottom player's knee line."},
+  {n:"No repeats",
+   setup:"Bottom wins a point by sweeping or standing up. Top wins by passing to a 3-second hold.",
+   rules:"Bottom cannot use the same retention shape (frames, hooks, butterfly and so on) twice in a row.",
+   round:"60 second rounds, three rounds then swap.",
+   watch:"Do they keep alternatives, or run out of ideas and default to one?",
+   ask:"Which shape was hardest to switch into? What would make it easier?",
+   easier:"Drop the no-repeat rule for the first round.",
+   harder:"Top also may not repeat the same passing path."}
+ ]
+},
+{
+ id:"passing", name:"Guard passing (top)",
+ signal:"Top players get stuck inside guard, or pass and get swept right back",
+ warm:"Light 'walk the legs'. Slowly step around your partner's legs, no scoring, 30 seconds each.",
+ live:"Rounds start with the passer in range. Passer scores for a pin held 3 seconds. Bottom scores for sweeps.",
+ games:[
+  {n:"Beat the legs",
+   setup:"Bottom has legs up, active but not sweeping or submitting. Top tries to get chest to chest or past the knee line.",
+   rules:"Bottom: 50% effort, frames and hooks only, no sweeps. Top: move first, grip second.",
+   round:"45 second rounds, four rounds, swap.",
+   watch:"Where do they put their weight? Is the head ahead of the hips?",
+   ask:"Which side was easier? What changed when you moved first?",
+   easier:"Bottom holds a frame only and does not hook.",
+   harder:"Bottom may sweep, but it only scores if it ends on top."},
+  {n:"Pass to a pin",
+   setup:"Start with one knee already past the bottom player's line. Top finishes the pass and holds side control for 3 seconds.",
+   rules:"Bottom may defend, shrimp or turn in. No submissions.",
+   round:"30 to 45 seconds, reset and swap.",
+   watch:"Do they rush to the pin without securing the hips? Do they give up the position when it gets hard?",
+   ask:"What did you feel when the pass stopped? What did your partner do to stop it?",
+   easier:"Bottom is limited to frames only.",
+   harder:"The pin must be on the opposite side from where you started."},
+  {n:"Pass or lose it",
+   setup:"Both players score. Top for passing. Bottom for sweeping or getting to standing.",
+   rules:"If a pass is stuffed, play on for 10 seconds. A stalemate resets both players.",
+   round:"60 second rounds, rotate partners every two rounds.",
+   watch:"Do they keep control after the pass or just race? Are bottom players sweep-minded or escape-minded?",
+   ask:"When did it flip? What was your plan right before?",
+   easier:"Give top a 5 second head start before bottom can hook.",
+   harder:"Top may not use the same pass twice in a row."}
+ ]
+},
+{
+ id:"top", name:"Top control and pins",
+ signal:"Passers reach side control but lose it fast, or can't hold anything",
+ warm:"Slow chest-to-chest weight transfers between pins, 30 seconds a round.",
+ live:"Rounds start in side control. Top scores 1 point per 10 seconds held. Bottom scores by escaping to guard or standing.",
+ games:[
+  {n:"Settle the weight",
+   setup:"Top starts in side control. Bottom plays at 50%. Top tries to stay heavy and still.",
+   rules:"No submissions. Top scores for holding 20 seconds without bottom recovering guard. Bottom makes small escapes only.",
+   round:"30 second rounds, swap.",
+   watch:"Where are their hips and head? Is the chest on the partner or hovering?",
+   ask:"Where did you feel most stable? What did their escape attempt tell you?",
+   easier:"Bottom only pushes. No bridging or hip escapes.",
+   harder:"Bottom starts with a frame on the neck and top has to flatten it first."},
+  {n:"Follow the escape",
+   setup:"Bottom tries to escape. Top follows and keeps control, moving between pins if needed.",
+   rules:"Top may change pins but must keep the chest connected. Bottom scores by getting to guard, knees or standing.",
+   round:"45 second rounds, three rounds, swap.",
+   watch:"Do they chase the person or wait? How big are their transitions?",
+   ask:"What did you do when they started to move?",
+   easier:"Bottom escapes in one direction only.",
+   harder:"Top can't use hands to hold the head. Use hips and shoulder."},
+  {n:"Trade pins for points",
+   setup:"Top earns a point for each different pin held 5 seconds (side control, knee on belly, north-south, mount). Bottom scores by escaping.",
+   rules:"No cranks or neck pressure. Knee on belly stays light and controlled. Each pin counts once.",
+   round:"60 to 90 seconds, rotate partners.",
+   watch:"Do they move between pins smoothly or lose control in the gap?",
+   ask:"Which transition felt risky, and why?",
+   easier:"Each pin counts twice.",
+   harder:"Bottom starts each round with a frame and one hook already in."}
+ ]
+},
+{
+ id:"escapes", name:"Escapes and recovering guard",
+ signal:"Bottom players stay pinned and burn out",
+ warm:"Light bridging and hip escapes under a heavy, slow pin.",
+ live:"Rounds start in side control or mount. Bottom scores for each clean escape. Top scores for each 15 seconds held.",
+ games:[
+  {n:"Make space",
+   setup:"Bottom is pinned in side control. The only goal is to create a gap with frames and bridges and bring a knee in.",
+   rules:"Top gives 50% pressure, no submissions. Bottom scores by getting a knee between you.",
+   round:"30 to 45 seconds, swap each round.",
+   watch:"Are they pushing with arms only? Do they move hips or head?",
+   ask:"What did you feel when the space opened? What closed it?",
+   easier:"Top uses a lighter pin and keeps hips low without squeezing.",
+   harder:"Top may follow and re-close the space."},
+  {n:"Escape to guard or feet",
+   setup:"Bottom starts pinned and scores by escaping to guard, knees or standing.",
+   rules:"Top holds and follows. No submissions. Reset after each escape.",
+   round:"45 second rounds, three rounds, swap.",
+   watch:"What do they try first? When do they give up?",
+   ask:"What did you try that didn't work? What would you try next?",
+   easier:"Top at 60% pressure.",
+   harder:"Top starts with a cross-face or underhook already in."},
+  {n:"Pinned again",
+   setup:"Bottom starts pinned. Every escape earns a point, then the top immediately pins again from a new position.",
+   rules:"Reset to a fresh pin after each escape. Top uses a different pin each time.",
+   round:"90 seconds, rotate partners every two rounds.",
+   watch:"Do they get faster at escaping? Do they save energy?",
+   ask:"What did you save? What did you waste?",
+   easier:"Top may only use side control.",
+   harder:"Bottom must escape within 20 seconds of each pin."}
+ ]
+},
+{
+ id:"back", name:"Back control",
+ signal:"People give up their backs, or can't keep it once they get it",
+ warm:"Light back-takes and seatbelt work. Partner on hands and knees, slow, 30 seconds.",
+ live:"Rounds start with one player turtled. Back-taker scores for hooks in or a seatbelt held 5 seconds. Turtle scores by escaping to guard or top.",
+ games:[
+  {n:"Seatbelt hold",
+   setup:"Back-taker starts behind a seated or turtled partner with a seatbelt grip and holds it for 30 seconds.",
+   rules:"Partner defends at 50%, small movements and hand fights only. No chokes.",
+   round:"30 second rounds, swap.",
+   watch:"Is their chest connected? Are their hips under them?",
+   ask:"Where did you lose them? What kept you connected?",
+   easier:"Partner only sits and does not escape.",
+   harder:"Partner can roll, turn and hand-fight."},
+  {n:"Back or turtle",
+   setup:"Turtle player scores by escaping to guard or top. Back-taker scores by getting hooks or a seatbelt held 5 seconds.",
+   rules:"No chokes, no neck cranks. Controlled rolls only.",
+   round:"45 second rounds, three rounds, swap.",
+   watch:"Which defender habits show up (turning the head, sitting back)?",
+   ask:"What did you do when you felt their hooks?",
+   easier:"Back-taker starts with one hook in.",
+   harder:"Turtle player starts with no frame and a hand on the mat."},
+  {n:"Keep it",
+   setup:"Back-taker starts with both hooks and a seatbelt. Defender tries to escape.",
+   rules:"Back-taker scores for keeping control 45 seconds. Defender scores for escaping to any position. Finishes only if the room has agreed to submissions, and slowly.",
+   round:"60 second rounds, swap.",
+   watch:"Do they follow when the person turns? Do they get lazy with the hooks?",
+   ask:"What did you change when they escaped?",
+   easier:"Defender may only escape in one direction.",
+   harder:"Back-taker starts without the seatbelt and must find it first."}
+ ]
+},
+{
+ id:"subs", name:"Submissions: finishing and defending",
+ signal:"Lots of position, but nobody finishes, or nobody defends well",
+ warm:"Slow, smooth control positions with no finishing pressure. Practice getting ready to attack.",
+ live:"Rounds start in a dominant position. Submissions are applied slowly. Flow matters more than speed.",
+ games:[
+  {n:"Set it up only",
+   setup:"From a dominant position (mount, back, side control), the attacker sets up a submission but does not finish.",
+   rules:"Attacker scores for a proper set position (for example an arm isolated), then stops. Defender defends at 50%.",
+   round:"45 second rounds, swap.",
+   watch:"Do they rush the finish or lose position to get it?",
+   ask:"What did you need to keep before you could attack? What did you give up?",
+   easier:"Partner defends at about 30%.",
+   harder:"Partner defends fully, and the attacker must keep position for 10 seconds after the set."},
+  {n:"Attack or lose it",
+   setup:"Attacker in a dominant position must attempt a submission every 15 seconds or the position resets to neutral.",
+   rules:"Slow finishes only. Tap early, release immediately. No heel hooks or neck cranks.",
+   round:"60 second rounds, swap.",
+   watch:"Do they keep position while attacking? Do they pick the same attack every time?",
+   ask:"Which attack was easiest to hit? Which felt like a stretch?",
+   easier:"Reset after 25 seconds instead of 15.",
+   harder:"Each attack must be a different submission."},
+  {n:"Defend the finish",
+   setup:"Defender starts in a danger position (back taken, mount, armbar set). Scores by escaping or surviving 45 seconds without tapping.",
+   rules:"Attacker finishes slowly. If tapped, restart. Controlled speed only.",
+   round:"45 second rounds, swap.",
+   watch:"Do they panic or breathe and move? Do they fight hands first or hips first?",
+   ask:"When did you know you were in trouble? What did you do then?",
+   easier:"Attacker starts with a weak grip.",
+   harder:"Attacker starts with the submission nearly locked and the defender must find a way out."}
+ ]
+},
+{
+ id:"scramble", name:"Scrambles and transitions",
+ signal:"People freeze when it gets scrambly, or flow stops between positions",
+ warm:"Light hot potato. Start in turtle or guard and trade top and bottom slowly for 30 seconds.",
+ live:"Rounds start with a scramble (both on knees or one turtled). Score for ending on top or standing.",
+ games:[
+  {n:"Hot potato",
+   setup:"Start from a pin or turtle. Players trade top and bottom and keep moving at light intensity.",
+   rules:"No submissions. No pressure holds longer than 2 seconds. Keep it playful.",
+   round:"45 second rounds, new partner every round.",
+   watch:"Do they stay in one position or follow movement? Is breathing steady?",
+   ask:"What was the signal that told you to move?",
+   easier:"Slow to about 30% speed.",
+   harder:"Add a goal: you must be on top when the round ends."},
+  {n:"Win the top",
+   setup:"Both start on knees facing each other. Goal: end on top in control, or standing, for 3 seconds.",
+   rules:"No submissions, no slamming. Controlled wrestle-ups only.",
+   round:"30 second rounds, four rounds, swap partners.",
+   watch:"Who dives and who sets up? Do they protect their neck?",
+   ask:"What did you see just before they committed?",
+   easier:"One player kneels and the other starts standing.",
+   harder:"Start back to back and turn to face."},
+  {n:"Chaos with a rule",
+   setup:"Free scrambling from any starting position with one restriction: nobody uses the same movement twice in a row.",
+   rules:"Safe pace, no submission finishes.",
+   round:"60 second rounds, rotate every two.",
+   watch:"Do they find new paths or freeze when the habit is blocked?",
+   ask:"What did you do when your usual move was gone?",
+   easier:"Remove the rule for the first 20 seconds.",
+   harder:"Add a second rule: no repeating the same grip twice."}
+ ]
+}
+];
+
+const LEVELS = {
+ new:{label:"Mostly new", note:"Keep goals obvious and one-sided. Demo for under two minutes, then let them play. Praise curiosity, not just wins."},
+ mixed:{label:"Mixed levels", note:"Give the more experienced partner an extra constraint (lower resistance, fewer tools, or a harder goal). Rotate partners so skill levels vary."},
+ adv:{label:"Mostly experienced", note:"Remove the obvious answers. Add rules that force alternatives and ask them what they are trying to solve."},
+ unsure:{label:"Level unclear", note:"Start gentle. Watch the first two rounds, then raise or lower one lever at a time."}
+};
+const PEOPLE = {
+ s:{label:"up to 6", note:"Small room: rotate partners every round. For odd numbers, run a triad where the third person watches and answers the Ask question."},
+ m:{label:"7 to 12", note:"Give each pair a clear slice of mat. Rotate on your call so people meet different bodies."},
+ l:{label:"13 to 20", note:"Tape lanes or zones and use short rounds. Keep the rules simple so you can roam and watch."},
+ xl:{label:"more than 20", note:"Split into two groups on separate mat areas, each running the same game. Use one clear call for start and stop."}
+};
+const SCHED = {
+ 30:{warm:4,blocks:[10,10],live:6,close:0},
+ 45:{warm:5,blocks:[13,13],live:10,close:4},
+ 60:{warm:6,blocks:[13,13,13],live:10,close:5},
+ 90:{warm:8,blocks:[15,15,15,15],live:15,close:7}
+};
+const SEQ = {
+ new:{2:[0,1],3:[0,1,1],4:[0,0,1,1]},
+ mixed:{2:[0,1],3:[0,1,2],4:[0,1,1,2]},
+ adv:{2:[1,2],3:[1,2,2],4:[0,1,2,2]}
+};
+SEQ.unsure = SEQ.mixed;
+
+const LEVERS = [
+ ["Space","Shrink the area or tape lanes so players meet sooner. Widen it to give room to move.","Half the mat width for a passing game."],
+ ["Time","Short rounds add urgency. Long rounds let ideas develop.","20-second exchanges, or one 3-minute round."],
+ ["Goal","Change what scores, or give each player a different goal.","Top scores for a pin, bottom scores for standing up."],
+ ["Start position","Start closer to the action, or from a worse spot.","Begin with a knee already past the guard."],
+ ["Rule","Ban or require a move to push people toward new answers.","No repeating the same retention shape."],
+ ["Resistance","Name the intensity out loud: 30, 50, 70 or full.","Partner at 50% for the first round."],
+ ["People","Change pairs, triads, or who partners with whom.","Give the experienced partner an extra handicap."]
+];
+const LOOP = [
+ "Explain the game in under two minutes. Show the start and the scoring, not a technique.",
+ "Run two rounds without stopping. Watch.",
+ "Say what you saw in one sentence.",
+ "Change one lever. Run two more rounds.",
+ "Ask one question. Let them answer with their next round."
+];
+const ASKS = [
+ "What are you trying to do here?",
+ "What did your partner do that stopped you?",
+ "What did you try when that didn't work?",
+ "What would make this easier? Harder?",
+ "Where was your weight when it worked?"
+];
+const SAFETY = [
+ "Agree the intensity before each game (for example 50%) and say it out loud.",
+ "Tap early, release at once.",
+ "No slams, neck cranks or heel hooks unless the room is experienced and has agreed.",
+ "Ask about injuries before you start. Offer lighter roles to anyone who needs them.",
+ "Keep mat edges and walls clear, and check spacing between pairs."
+];
+
+/* ---------- STATE ---------- */
+const S = {tab:"plan", step:1, level:"unsure", time:60, people:"m", theme:null};
+const T = {work:60, rest:10, phase:"work", remaining:60, round:1, running:false, started:false, endAt:0, ctx:null, wl:null};
+const $ = s => document.querySelector(s);
+
+/* ---------- PLAN BUILD ---------- */
+function themeById(id){return THEMES.find(t=>t.id===id);}
+function buildPlan(){
+  const th = themeById(S.theme), sc = SCHED[S.time];
+  const seq = SEQ[S.level][sc.blocks.length];
+  const blocks = sc.blocks.map((mins,i)=>({
+    mins, rung:seq[i], g:th.games[seq[i]], replay:i>0 && seq[i]===seq[i-1]
+  }));
+  return {th, sc, blocks};
+}
+function planText(){
+  const {th, sc, blocks} = buildPlan();
+  const L = [];
+  L.push("READ THE ROOM: "+th.name);
+  L.push(S.time+" min, "+LEVERS_LEVEL()+", "+PEOPLE[S.people].label+" people");
+  L.push("");
+  L.push("Warm-up ("+sc.warm+" min): "+th.warm);
+  blocks.forEach(b=>{
+    L.push("");
+    L.push((b.replay?"Replay with a twist: ":"")+b.g.n+" ("+b.mins+" min, "+RUNG[b.rung]+")");
+    L.push("Setup: "+b.g.setup);
+    L.push("Rules: "+b.g.rules);
+    L.push("Rounds: "+b.g.round);
+    L.push("Watch for: "+b.g.watch);
+    L.push("Ask: "+b.g.ask);
+    L.push("Too hard: "+b.g.easier);
+    L.push("Too easy: "+b.g.harder);
+  });
+  L.push("");
+  L.push("Live rounds ("+sc.live+" min): "+th.live);
+  if(sc.close) L.push("Close ("+sc.close+" min): What did you notice? What would you change? One takeaway each.");
+  return L.join("\n");
+}
+function LEVERS_LEVEL(){return LEVELS[S.level].label.toLowerCase();}
+
+/* ---------- VIEWS ---------- */
+function blockHTML(b, opts){
+  opts = opts||{};
+  const g=b.g, tag = b.replay ? "Replay with a twist" : RUNG[b.rung];
+  const mins = b.mins ? '<span class="mins">'+b.mins+' min</span>' : '';
+  return '<details class="block r'+b.rung+'"'+(opts.open?' open':'')+'>'+
+   '<summary><span class="bar"></span><span class="bt"><b>'+g.n+'</b><small>'+tag+'</small></span>'+mins+'</summary>'+
+   '<div class="body">'+
+   '<p><strong>Setup.</strong> '+g.setup+'</p>'+
+   '<p class="rules"><strong>Rules.</strong> '+g.rules+'</p>'+
+   '<p><strong>Rounds.</strong> '+g.round+'</p>'+
+   '<p><strong>Watch for.</strong> '+g.watch+'</p>'+
+   '<p><strong>Ask.</strong> '+g.ask+'</p>'+
+   '<p><strong>Too hard?</strong> '+g.easier+'</p>'+
+   '<p><strong>Too easy?</strong> '+g.harder+'</p>'+
+   '</div></details>';
+}
+
+function viewStep1(){
+  const opt=(group,val,label)=>'<button class="opt" data-a="set" data-g="'+group+'" data-v="'+val+'" aria-pressed="'+(String(S[group])===String(val))+'">'+label+'</button>';
+  return '<h1>Read the room</h1><span class="tapebar"></span>'+
+   '<p class="lede">Constraints-led games for no-gi jiu-jitsu. Tell me about the room, pick what you see, and get a timed session you can run now.</p>'+
+   '<fieldset class="q"><legend>Who is in the room?</legend><div class="opts">'+
+     opt("level","new","Mostly new")+opt("level","mixed","Mixed levels")+opt("level","adv","Mostly experienced")+opt("level","unsure","Can't tell yet")+
+   '</div></fieldset>'+
+   '<fieldset class="q"><legend>How long do you have?</legend><div class="opts">'+
+     opt("time",30,"30 min")+opt("time",45,"45 min")+opt("time",60,"60 min")+opt("time",90,"90 min")+
+   '</div></fieldset>'+
+   '<fieldset class="q"><legend>How many people?</legend><div class="opts">'+
+     opt("people","s","Up to 6")+opt("people","m","7 to 12")+opt("people","l","13 to 20")+opt("people","xl","More than 20")+
+   '</div></fieldset>'+
+   '<button class="btn" data-a="step" data-v="2">Next: what are you seeing?</button>';
+}
+
+function viewStep2(){
+  const sigs = THEMES.map(t=>'<button class="sig" data-a="pick" data-v="'+t.id+'"><b>'+t.signal+'</b><span>'+t.name+'</span></button>').join("");
+  return '<button class="linkbtn" data-a="step" data-v="1">Back</button>'+
+   '<h2>What are you seeing?</h2><span class="tapebar"></span>'+
+   '<p class="lede">Tap the line that sounds most like your room. The theme sets the games.</p>'+
+   '<details class="probe"'+(S.level==="unsure"?' open':'')+'><summary>Can\'t tell yet? Run a 5-minute probe</summary>'+
+   '<p>Run four 75-second rounds at about 50%, swapping roles halfway through each round and rotating partners:</p>'+
+   '<ul class="plain"><li>Both standing, hands free</li><li>One seated with legs up, one standing</li><li>Side control, light pressure</li><li>One player turtled</li></ul>'+
+   '<p>Don\'t coach. Watch where people stall, panic or give up position, then pick the closest match below.</p></details>'+
+   '<div class="signals">'+sigs+'</div>';
+}
+
+function viewResult(){
+  const {th, sc, blocks} = buildPlan();
+  const blocksHTML = blocks.map(b=>blockHTML(b)).join("");
+  return '<button class="linkbtn" data-a="step" data-v="2">Change theme</button>'+
+   '<h2>'+th.name+'</h2><span class="tapebar"></span>'+
+   '<p class="lede">'+S.time+' minutes. '+LEVELS[S.level].label+'. '+PEOPLE[S.people].label+' people.</p>'+
+   '<div class="note"><b>For this room.</b> '+LEVELS[S.level].note+'</div>'+
+   '<div class="note"><b>Numbers.</b> '+PEOPLE[S.people].note+'</div>'+
+   '<h3>Session</h3>'+
+   '<div class="row"><div class="mins">'+sc.warm+' min</div><div class="txt"><b>Warm-up</b><span>'+th.warm+'</span></div></div>'+
+   blocksHTML+
+   '<div class="row"><div class="mins">'+sc.live+' min</div><div class="txt"><b>Live rounds</b><span>'+th.live+'</span></div></div>'+
+   (sc.close?'<div class="row"><div class="mins">'+sc.close+' min</div><div class="txt"><b>Close</b><span>Ask: what did you notice, and what would you change? One takeaway each.</span></div></div>':'')+
+   '<h3>While it runs</h3><ol class="plain">'+LOOP.map(x=>'<li>'+x+'</li>').join("")+'</ol>'+
+   '<p class="small muted">Tap a game to open it. Grey, blue and purple bars mark how much each game adds.</p>'+
+   '<button class="btn" data-a="copy">Copy plan as text</button>'+
+   '<button class="btn ghost" data-a="reset">Start over</button>';
+}
+
+function viewToolkit(){
+  return '<h2>Toolkit</h2><span class="tapebar"></span>'+
+   '<p class="lede">The levers you change, the loop you run, and the rules that keep people safe.</p>'+
+   '<h3>Seven levers</h3><p class="small muted">Change one at a time. Run two rounds. Watch what changes.</p>'+
+   LEVERS.map(l=>'<div class="lever"><b>'+l[0]+'</b><p>'+l[1]+'</p><p class="muted">Try: '+l[2]+'</p></div>').join("")+
+   '<h3>The loop</h3><ol class="plain">'+LOOP.map(x=>'<li>'+x+'</li>').join("")+'</ol>'+
+   '<h3>Questions beat instructions</h3><ul class="plain">'+ASKS.map(x=>'<li>'+x+'</li>').join("")+'</ul>'+
+   '<h3>Tuning by level</h3>'+
+   Object.keys(LEVELS).map(k=>'<p><strong>'+LEVELS[k].label+'.</strong> '+LEVELS[k].note+'</p>').join("")+
+   '<h3>No-gi mat rules</h3><ul class="plain">'+SAFETY.map(x=>'<li>'+x+'</li>').join("")+'</ul>';
+}
+
+function viewLibrary(){
+  return '<h2>Library</h2><span class="tapebar"></span>'+
+   '<p class="lede">Every theme and game. Each theme climbs from learning the task, to adding opposition, to complicating it.</p>'+
+   THEMES.map(t=>
+     '<details class="block r0"><summary><span class="bar"></span><span class="bt"><b>'+t.name+'</b><small>'+t.signal+'</small></span></summary>'+
+     '<div class="body">'+
+     '<p><strong>Warm-up.</strong> '+t.warm+'</p>'+
+     t.games.map((g,i)=>blockHTML({g:g,rung:i,mins:0,replay:false})).join("")+
+     '<p><strong>Live rounds.</strong> '+t.live+'</p>'+
+     '<button class="btn ghost" data-a="use" data-v="'+t.id+'">Build a session on this theme</button>'+
+     '</div></details>'
+   ).join("");
+}
+
+function viewTimer(){
+  const chip=(grp,val,label)=>'<button class="chip" data-a="tset" data-g="'+grp+'" data-v="'+val+'" aria-pressed="'+(T[grp]===val)+'">'+label+'</button>';
+  return '<h2>Timer</h2><span class="tapebar"></span>'+
+   '<div class="timer'+(T.phase==="rest"?' rest':'')+'" id="tbox"><div id="tdisp">'+fmt(T.remaining)+'</div><div id="tstat"></div>'+
+   '<button class="btn" id="tbtn" data-a="ttoggle">Start</button>'+
+   '<button class="btn ghost" data-a="treset">Reset</button></div>'+
+   '<h3 style="margin-top:0">Round length</h3><div class="chips">'+
+     [30,45,60,90,120,180,300].map(v=>chip("work",v,v<60?v+"s":(v%60===0?(v/60)+" min":Math.floor(v/60)+":"+String(v%60).padStart(2,"0")))).join("")+
+   '</div>'+
+   '<h3 style="margin-top:0">Rest between rounds</h3><div class="chips">'+
+     [0,5,10,15,30].map(v=>chip("rest",v,v===0?"None":v+"s")).join("")+
+   '</div>'+
+   '<p class="small muted">Beeps and vibrates at the end of each round. Three beeps ends a round, one ends a rest. Keeps the screen awake while running.</p>';
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  const app=$("#app");
+  let h="";
+  if(S.tab==="plan") h = S.step===1?viewStep1():S.step===2?viewStep2():viewResult();
+  else if(S.tab==="toolkit") h=viewToolkit();
+  else if(S.tab==="library") h=viewLibrary();
+  else h=viewTimer();
+  app.innerHTML=h;
+  document.querySelectorAll("nav.tabs button").forEach(b=>{
+    if(b.dataset.v===S.tab) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
+  if(S.tab==="timer") paintTimer();
+}
+
+/* ---------- TIMER ---------- */
+function fmt(s){const m=Math.floor(s/60),r=s%60;return m+":"+String(r).padStart(2,"0");}
+function audio(){
+  if(!T.ctx){const C=window.AudioContext||window.webkitAudioContext; if(C) T.ctx=new C();}
+  if(T.ctx && T.ctx.state==="suspended") T.ctx.resume();
+}
+function beep(n){
+  if(T.ctx){
+    for(let i=0;i<n;i++){
+      const o=T.ctx.createOscillator(), g=T.ctx.createGain();
+      o.frequency.value=880; o.connect(g); g.connect(T.ctx.destination);
+      const t=T.ctx.currentTime+i*0.25;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.3,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+      o.start(t); o.stop(t+0.2);
+    }
+  }
+  if(navigator.vibrate) navigator.vibrate(n>1?[200,100,200]:200);
+}
+async function lockScreen(){try{if("wakeLock" in navigator) T.wl=await navigator.wakeLock.request("screen");}catch(e){}}
+function unlockScreen(){try{if(T.wl){T.wl.release();T.wl=null;}}catch(e){}}
+function paintTimer(){
+  const d=$("#tdisp"); if(!d) return;
+  d.textContent=fmt(T.remaining);
+  $("#tstat").textContent = (T.phase==="rest"?"Rest":"Round "+T.round) + (T.running?"":(T.started?" (paused)":""));
+  $("#tbtn").textContent = T.running?"Pause":(T.started?"Resume":"Start");
+  $("#tbox").classList.toggle("rest",T.phase==="rest");
+}
+function tick(){
+  if(!T.running) return;
+  let rem=Math.ceil((T.endAt-Date.now())/1000);
+  if(rem<=0){
+    if(T.phase==="work"){
+      beep(3);
+      if(T.rest>0){T.phase="rest";T.remaining=T.rest;}
+      else{T.round++;T.remaining=T.work;}
+    }else{
+      beep(1); T.phase="work"; T.round++; T.remaining=T.work;
+    }
+    T.endAt=Date.now()+T.remaining*1000; rem=T.remaining;
+  }
+  T.remaining=rem;
+  paintTimer();
+}
+setInterval(tick,250);
+function timerToggle(){
+  if(!T.running){
+    audio(); T.running=true; T.started=true; T.endAt=Date.now()+T.remaining*1000; lockScreen();
+  }else{
+    T.remaining=Math.max(1,Math.ceil((T.endAt-Date.now())/1000)); T.running=false; unlockScreen();
+  }
+  paintTimer();
+}
+function timerReset(){
+  T.running=false;T.started=false;T.phase="work";T.remaining=T.work;T.round=1;unlockScreen();paintTimer();
+}
+
+/* ---------- ACTIONS ---------- */
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1800);}
+function copyPlan(){
+  const text=planText();
+  const done=()=>toast("Plan copied");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));
+  }else fallbackCopy(text,done);
+}
+function fallbackCopy(text,done){
+  const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{document.execCommand("copy");done();}catch(e){toast("Copy not available here");}
+  document.body.removeChild(ta);
+}
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-a]"); if(!el) return;
+  const a=el.dataset.a, v=el.dataset.v, g=el.dataset.g;
+  if(a==="tab"){S.tab=v;render();window.scrollTo(0,0);}
+  else if(a==="set"){S[g]=(g==="time")?Number(v):v;render();}
+  else if(a==="step"){S.step=Number(v);render();window.scrollTo(0,0);}
+  else if(a==="pick"){S.theme=v;S.step=3;render();window.scrollTo(0,0);}
+  else if(a==="use"){S.theme=v;S.tab="plan";S.step=3;render();window.scrollTo(0,0);}
+  else if(a==="reset"){S.step=1;S.theme=null;render();window.scrollTo(0,0);}
+  else if(a==="copy"){copyPlan();}
+  else if(a==="ttoggle"){timerToggle();}
+  else if(a==="treset"){timerReset();}
+  else if(a==="tset"){
+    T[g]=Number(v);
+    if(g==="work"||!T.started){T.phase="work";T.remaining=T.work;T.round=1;T.running=false;T.started=false;unlockScreen();}
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
